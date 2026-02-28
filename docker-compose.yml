@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: portfolio-postgres
+    environment:
+      POSTGRES_USER: ishika
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: portfolio
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - portfolio-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: portfolio-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - portfolio-network
+
+  projects-service:
+    build:
+      context: ./projects-service
+    container_name: projects-service
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgres://ishika:password@postgres:5432/portfolio
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3001:3001"
+    networks:
+      - portfolio-network
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    depends_on:
+      - projects-service
+    ports:
+      - "3000:3000"
+    networks:
+      - portfolio-network
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: portfolio-frontend
+    ports:
+      - "3002:3000"
+    networks:
+      - portfolio-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: portfolio-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - api-gateway
+    networks:
+      - portfolio-network
+
+volumes:
+  postgres_data:
+
+networks:
+  portfolio-network:
+    driver: bridge
