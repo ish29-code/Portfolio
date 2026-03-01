@@ -31,7 +31,8 @@ services:
       - postgres
       - redis
     environment:
-      DATABASE_URL: postgres://ishika:password@postgres:5432/portfolio
+      environment:
+      DATABASE_URL: postgres://ishika:password@postgres:5432/portfolio?sslmode=disable
       REDIS_HOST: redis
       REDIS_PORT: 6379
     ports:
@@ -74,6 +75,7 @@ services:
 
 volumes:
   postgres_data:
+
 
 networks:
   portfolio-network:
