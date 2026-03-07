@@ -19,6 +19,7 @@ export class ProjectsService {
 
     async findAll() {
         return this.repo.find();
+
     }
 
     async create(data: { title: string; description: string }) {
